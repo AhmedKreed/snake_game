@@ -4,10 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-  "start": "tailwindcss build styles.css -o output.css && live-server",
-  "build": "tailwindcss build styles.css -o output.css",
-  "predeploy": "npm run build",
-  "deploy": "gh-pages -d ."
+    "start": "tailwindcss build ./src/styles/tailwind.css -o ./src/styles/output.css && live-server",
+    "build": "tailwindcss build ./src/styles/tailwind.css -o ./src/styles/output.css",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d ."
   },
   "keywords": [],
   "author": "",
