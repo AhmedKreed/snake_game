@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./styles/tailwind.css" rel="stylesheet" />
+    <link href="./styles/output.css" rel="stylesheet" />
+    <title>Tailwind Starter</title>
+  </head>
+  <body>
+    <main
+      class="bg-gray-800 h-screen py-12 flex flex-col justify-center items-center gap-12 relative"
+    >
+      <nav class="text-center px-6">
+        <h1 class="sm:text-4xl text-2xl text-yellow-500 font-bold">
+          Welcome to the snake game
+        </h1>
+      </nav>
+      <!-- i want this to be a square (aspect ratio 1:1) : -->
+      <div
+        class="relative w-full max-w-screen-lg mx-auto"
+        style="
+          height: calc(100vh - 6rem - 2rem);
+          max-height: calc(100vh - 6rem - 2rem);
+          padding-bottom: 1rem;
+        "
+      >
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-full h-full bg-black grid boxGrid" id="box"></div>
+        </div>
+      </div>
+      <div id="counter" class="text-2xl text-white">Size:</div>
+      <div
+        id="popup"
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 hidden bg-[#8b8b8b] items-center justify-center flex-col gap-6 outline-2 outline outline-[#8b8b8b] border-2 border-solid border-black"
+      >
+        <h1 class="text-black text-4xl font-semibold">Game Over</h1>
+        <button
+          id="reset"
+          class="border-2 px-4 py-2 border-black rounded-md text-2xl font-bold"
+        >
+          reset
+        </button>
+      </div>
+    </main>
+
+    <script type="module">
+      import snakeGame from "./index.js";
+
+      const game = snakeGame(100);
+      game.startGame();
+
+      document.getElementById("reset").addEventListener("click", () => {
+        game.resetGame();
+      });
+    </script>
+  </body>
+</html>
