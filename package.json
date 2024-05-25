@@ -1,0 +1,20 @@
+{
+  "name": "snake-game",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+  "start": "tailwindcss build styles.css -o output.css && live-server",
+  "build": "tailwindcss build styles.css -o output.css",
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "gh-pages": "^6.1.1",
+    "tailwindcss": "^3.4.3"
+  }
+}
