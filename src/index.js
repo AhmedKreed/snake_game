@@ -4,6 +4,9 @@ const ARROWS = {
   ArrowLeft: [-1, 0],
   ArrowRight: [1, 0],
 };
+const GRID = 32;
+const APPLECOLOR = "red";
+const SNAKECOLOR = "green";
 
 class Game {
   constructor(speed) {
@@ -18,30 +21,38 @@ class Game {
     this.direction = null;
     this.apple = this.randomApple();
     this.lost = false;
+    this.callStack = [];
   }
+
   enqueue(crid) {
     this.snakeBody.push(crid);
   }
+
   dequeue() {
     this.snakeBody.shift();
   }
+
   renderSnake(crid) {
-    let snakeBody = document.createElement("div");
+    const snakeBody = document.createElement("div");
     snakeBody.style.gridColumnStart = crid[0];
     snakeBody.style.gridRowStart = crid[1];
-    snakeBody.style.backgroundColor = "green";
+    snakeBody.style.backgroundColor = SNAKECOLOR;
     document.getElementById("box").appendChild(snakeBody);
   }
+
   renderApple() {
     const apple = document.createElement("div");
     apple.style.gridColumnStart = this.apple[0];
     apple.style.gridRowStart = this.apple[1];
-    apple.style.backgroundColor = "red";
+    apple.style.backgroundColor = APPLECOLOR;
     document.getElementById("box").appendChild(apple);
   }
+
   render() {
     this.checks();
     if (this.lost) {
+      clearInterval(this.intervalId);
+      document.removeEventListener("keydown", this.handleKeydown);
       let popup = document.getElementById("popup");
       popup.classList.add("pop");
       return;
@@ -55,89 +66,105 @@ class Game {
       this.renderSnake(snake);
     }
   }
-  addKeyboardListener() {
-    document.addEventListener("keydown", (event) => {
-      let newDirection = this.direction;
-      switch (event.key) {
-        case "ArrowUp":
-          if (this.direction !== "ArrowDown") newDirection = "ArrowUp";
-          break;
-        case "ArrowDown":
-          if (this.direction !== "ArrowUp") newDirection = "ArrowDown";
-          break;
-        case "ArrowLeft":
-          if (this.direction !== "ArrowRight") newDirection = "ArrowLeft";
-          break;
-        case "ArrowRight":
-          if (this.direction !== "ArrowLeft") newDirection = "ArrowRight";
-          break;
-      }
-      if (newDirection !== this.direction) {
-        this.direction = newDirection;
 
+  changeDirection(newDirection) {
+    this.direction = newDirection;
+  }
+
+  handleKeydown = (event) => {
+    let newDirection = this.direction;
+    switch (event.key) {
+      case "ArrowUp":
+        if (this.direction !== "ArrowDown") newDirection = "ArrowUp";
+        break;
+      case "ArrowDown":
+        if (this.direction !== "ArrowUp") newDirection = "ArrowDown";
+        break;
+      case "ArrowLeft":
+        if (this.direction !== "ArrowRight") newDirection = "ArrowLeft";
+        break;
+      case "ArrowRight":
+        if (this.direction !== "ArrowLeft") newDirection = "ArrowRight";
+        break;
+    }
+
+    if (newDirection !== this.direction) {
+      this.changeDirection(newDirection);
+      if (!this.intervalId) {
         this.snakeMovement();
       }
-    });
+    }
+  };
+
+  addKeyboardListener() {
+    document.addEventListener("keydown", this.handleKeydown);
   }
+
+  processCallStack() {
+    if (this.callStack.length > 0) {
+      const call = this.callStack.shift();
+      call();
+    } else {
+      this.moveSnake();
+    }
+  }
+
   snakeMovement() {
-    setTimeout(() => {
-      this.moveSnake();
-    }, this.speed / 4);
-
-    if (this.intervalId) clearInterval(this.intervalId);
-
-    this.intervalId = setInterval(() => {
-      this.moveSnake();
-    }, this.speed);
+    this.intervalId = setInterval(() => this.processCallStack(), this.speed);
   }
+
   moveSnake() {
     const newHead = this.getMovementDirection();
     if (!this.isGoingBack()) {
       this.enqueue(newHead);
-      this.dequeue(newHead);
+      this.dequeue();
       this.render();
     } else {
       switch (this.direction) {
         case "ArrowUp":
-          this.direction = "ArrowDown";
+          this.changeDirection("ArrowDown");
           break;
         case "ArrowDown":
-          this.direction = "ArrowUp";
+          this.changeDirection("ArrowUp");
           break;
         case "ArrowLeft":
-          this.direction = "ArrowRight";
+          this.changeDirection("ArrowRight");
           break;
         case "ArrowRight":
-          this.direction = "ArrowLeft";
+          this.changeDirection("ArrowLeft");
           break;
       }
     }
   }
-  isGoingBack() {
-    const [x, y] = this.getMovementDirection();
-    const [nextX, nextY] = this.snakeBody[this.snakeBody.length - 2];
-    return x === nextX && y === nextY;
-  }
+
   getMovementDirection() {
     let [x, y] = this.snakeBody[this.snakeBody.length - 1];
     const [newX, newY] = ARROWS[this.direction];
     [x, y] = [x + newX, y + newY];
     return [x, y];
   }
+
   randomApple() {
-    const x = Math.floor(Math.random() * (32 - 1 + 1)) + 1;
-    const y = Math.floor(Math.random() * (32 - 1 + 1)) + 1;
+    const x = Math.floor(Math.random() * (GRID - 1 + 1)) + 1;
+    const y = Math.floor(Math.random() * (GRID - 1 + 1)) + 1;
     return [x, y];
   }
+
+  isGoingBack() {
+    const [x, y] = this.getMovementDirection();
+    const [nextX, nextY] = this.snakeBody[this.snakeBody.length - 2];
+    return x === nextX && y === nextY;
+  }
+
   checks() {
     const [appleX, appleY] = this.apple;
     const [x, y] = this.snakeBody[this.snakeBody.length - 1];
     if (x === appleX && y === appleY) {
-      this.enqueue(this.getMovementDirection());
+      this.enqueue([appleX, appleY]);
       this.apple = this.randomApple();
       return;
     }
-    if (x > 32 || x < 1 || y > 32 || y < 1) {
+    if (x > GRID || x < 1 || y > GRID || y < 1) {
       this.lost = true;
       return;
     }
@@ -149,8 +176,8 @@ class Game {
       }
     }
   }
+
   reset() {
-    clearInterval(this.intervalId);
     this.snakeBody = [
       [7, 10],
       [8, 10],
@@ -162,7 +189,6 @@ class Game {
     this.direction = null;
     this.apple = this.randomApple();
     document.getElementById("popup").classList.remove("pop");
-    document.removeEventListener("keydown", () => {});
   }
 }
 
@@ -175,7 +201,6 @@ export default function snakeGame(time) {
     },
     resetGame() {
       game.reset();
-      game.render();
       game.addKeyboardListener();
     },
   };
