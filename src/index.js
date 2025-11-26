@@ -4,19 +4,20 @@ const ARROWS = {
   ArrowLeft: [-1, 0],
   ArrowRight: [1, 0],
 };
-const GRID = 32;
 const APPLECOLOR = "red";
 const SNAKECOLOR = "green";
 
 class Game {
-  constructor(speed) {
+  constructor(speed = 75, size = 32) {
     this.speed = speed;
     this.snakeBody = [
-      [7, 10],
-      [8, 10],
-      [9, 10],
-      [10, 10],
+      [4, 3],
+      [5, 3],
+      [6, 3],
+      [7, 3],
     ];
+    this.takenSquares = new Set();
+    this.size = size;
     this.intervalId = null;
     this.direction = null;
     this.apple = this.randomApple();
@@ -145,8 +146,17 @@ class Game {
   }
 
   randomApple() {
-    const x = Math.floor(Math.random() * (GRID - 1 + 1)) + 1;
-    const y = Math.floor(Math.random() * (GRID - 1 + 1)) + 1;
+    let x, y;
+    let loops = 0;
+    do {
+      x = Math.floor(Math.random() * this.size) + 1;
+      y = Math.floor(Math.random() * this.size) + 1;
+      loops++;
+      if (loops === 1000) break;
+    } while (
+      this.snakeBody.some(([bodyX, bodyY]) => bodyX === x && bodyY === y)
+    );
+
     return [x, y];
   }
 
@@ -164,7 +174,7 @@ class Game {
       this.apple = this.randomApple();
       return;
     }
-    if (x > GRID || x < 1 || y > GRID || y < 1) {
+    if (x > this.size || x < 1 || y > this.size || y < 1) {
       this.lost = true;
       return;
     }
@@ -189,11 +199,12 @@ class Game {
     this.direction = null;
     this.apple = this.randomApple();
     document.getElementById("popup").classList.remove("pop");
+    this.render();
   }
 }
 
-export default function snakeGame(time) {
-  const game = new Game(time);
+export default function snakeGame(speed, size) {
+  const game = new Game(speed, size);
   return {
     startGame() {
       game.render();

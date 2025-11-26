@@ -14,3 +14,14 @@ body {
 .pop {
   display: flex !important;
 }
+@layer base {
+  .my-custom-button {
+    @apply mt-3 px-4 py-2 rounded-md bg-[#8b8b8b] text-black font-semibold;
+  }
+  .arrowButtons {
+    @apply my-custom-button flex justify-center items-center w-16 p-0 aspect-square mt-0;
+  }
+  .active {
+    @apply text-white bg-yellow-500;
+  }
+}

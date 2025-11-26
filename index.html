@@ -6,31 +6,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="./src/styles/tailwind.css" rel="stylesheet" />
     <link href="./src/styles/output.css" rel="stylesheet" />
+    <head>
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
     <title>Tailwind Starter</title>
   </head>
   <body>
     <main
-      class="bg-gray-800 h-screen py-12 flex flex-col justify-center items-center gap-12 relative"
+      class="bg-gray-800 h-screen lg:py-12 py-6 flex justify-evenly flex-col items-center lg:gap-8 relative"
     >
-      <nav class="text-center px-6">
+      <!-- GAME SETTINGS -->
+      <nav class="text-center px-6 flex flex-col gap-6 items-center">
         <h1 class="sm:text-4xl text-2xl text-yellow-500 font-bold">
           Welcome to the snake game
         </h1>
+        <div class="flex justify-evenly w-full flex-wrap" id="settingButtons">
+          <button class="my-custom-button" data-value="16" id="mapSize">
+            Small
+          </button>
+          <button class="my-custom-button active" data-value="32" id="mapSize">
+            Medium
+          </button>
+          <button class="my-custom-button" data-value="64" id="mapSize">
+            Big
+          </button>
+        </div>
+        <div class="flex justify-evenly w-full" id="settingButtons">
+          <button class="my-custom-button" data-value="100" id="snakeSpeed">
+            Easy
+          </button>
+          <button
+            class="my-custom-button active"
+            data-value="75"
+            id="snakeSpeed"
+          >
+            Medium
+          </button>
+          <button class="my-custom-button" data-value="50" id="snakeSpeed">
+            Hard
+          </button>
+        </div>
+        <button class="my-custom-button" id="startGame">Start</button>
       </nav>
-      <!-- i want this to be a square (aspect ratio 1:1) : -->
+
+      <!-- GAME -->
+      <div id="counter" class="text-2xl text-white hidden">Size:</div>
       <div
-        class="relative w-full max-w-screen-lg mx-auto"
-        style="
-          height: calc(100vh - 6rem - 2rem);
-          max-height: calc(100vh - 6rem - 2rem);
-          padding-bottom: 1rem;
-        "
+        class="relative aspect-square lg:h-full h-[370px] hidden"
+        id="gameContainer"
       >
-        <div class="absolute inset-0 flex items-center justify-center">
+        <div
+          class="absolute inset-0 flex items-center justify-center h-full w-full"
+        >
           <div class="w-full h-full bg-black grid boxGrid" id="box"></div>
         </div>
       </div>
-      <div id="counter" class="text-2xl text-white">Size:</div>
+      <div
+        class="gap-2 flex-col items-center text-3xl hidden"
+        id="arrowButtons"
+      >
+        <button class="arrowButtons">↑</button>
+        <div class="flex gap-2">
+          <button class="arrowButtons">←</button>
+          <button class="arrowButtons">↓</button>
+          <button class="arrowButtons">→</button>
+        </div>
+      </div>
+      <!-- POPUP AFTER LOSING -->
       <div
         id="popup"
         class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 hidden bg-[#8b8b8b] items-center justify-center flex-col gap-6 outline-2 outline outline-[#8b8b8b] border-2 border-solid border-black"
@@ -40,20 +82,106 @@
           id="reset"
           class="border-2 px-4 py-2 border-black rounded-md text-2xl font-bold"
         >
-          reset
+          Reset
+        </button>
+        <button
+          id="changeSettings"
+          class="border-2 px-4 py-2 border-black rounded-md text-2xl font-bold"
+        >
+          Change settings
         </button>
       </div>
     </main>
 
     <script type="module">
       import snakeGame from "./src/index.js";
+      const buttonStart = document.getElementById("startGame");
+      const mapSizeButtons = document.querySelectorAll('button[id="mapSize"]');
+      const snakeSpeedButtons = document.querySelectorAll(
+        'button[id="snakeSpeed"]'
+      );
+      mapSizeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          mapSizeButtons.forEach((btn) => btn.classList.remove("active"));
+          button.classList.add("active");
+        });
+      });
+      snakeSpeedButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          snakeSpeedButtons.forEach((btn) => btn.classList.remove("active"));
+          button.classList.add("active");
+        });
+      });
+      const gameSettings = {
+        speed: 75,
+        size: 32,
+      };
+      buttonStart.addEventListener("click", () => {
+        buttonStart.remove();
+        snakeSpeedButtons.forEach((button) => {
+          button.style.display = "none";
+        });
+        mapSizeButtons.forEach((button) => {
+          button.style.display = "none";
+        });
+        const selectedGameSettings = document.getElementsByClassName("active");
+        Array.from(selectedGameSettings).forEach((button) => {
+          gameSettings[button.id === "mapSize" ? "size" : "speed"] = parseInt(
+            button.getAttribute("data-value")
+          );
+        });
 
-      const game = snakeGame(100);
-      game.startGame();
+        const box = document.getElementById("box");
+        box.style.gridTemplateColumns = `repeat(${gameSettings.size}, 1fr)`;
+        box.style.gridTemplateRows = `repeat(${gameSettings.size}, 1fr)`;
+        const game = snakeGame(gameSettings.speed, gameSettings.size);
+        game.startGame();
+        const hiddenElements = document.querySelectorAll(".hidden");
+        hiddenElements.forEach((hiddenElement) => {
+          if (hiddenElement.id !== "popup")
+            hiddenElement.classList.remove("hidden");
+        });
+        document.getElementById("arrowButtons").classList.add("flex");
 
-      document.getElementById("reset").addEventListener("click", () => {
-        game.resetGame();
+        document.getElementById("reset").addEventListener("click", () => {
+          game.resetGame();
+        });
+        document
+          .getElementById("changeSettings")
+          .addEventListener("click", () => {
+            window.location.reload();
+          });
       });
     </script>
+    <!-- <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const element = document.getElementById("gameContainer");
+        const box = document.getElementById("box");
+
+        if (element && box) {
+          const resizeObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+              const { width, height } = entry.contentRect;
+              console.log(
+                `Container Size: ${Math.round(width)}px × ${Math.round(
+                  height
+                )}px`
+              );
+
+              // Calculate grid dimensions
+              const rows = 32;
+              const columns = Math.round(rows * (width / height));
+
+              console.log(`Grid: ${columns} columns × ${rows} rows`);
+
+              // Apply grid using CSS only - no DOM manipulation
+              box.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+              box.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            }
+          });
+          resizeObserver.observe(element);
+        }
+      });
+    </script> -->
   </body>
 </html>
